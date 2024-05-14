@@ -47,3 +47,8 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+#ignore data files
+sourcedata/GTdata/*.csv
+sourcedata/GTdata/*.CSV
+

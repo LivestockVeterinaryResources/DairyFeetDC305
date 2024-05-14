@@ -53,7 +53,7 @@ the following DC commands to get the 5(s1826) years of data.
 
 When exporting data in the filename replace farm with an abbreviation for farm.
 
-filename: farm_lame command: EVENTS ID PEN BDAT FDAT ARDAT LACT CBRD FOOTRIM LAME\\2S1826
+filename: farm_lame command: EVENTS ID PEN BDAT FDAT ARDAT LACT CBRD FOOTRIM LAME\\2S1826 
 
 filename: farm_dry_cull command:EVENTS ID PEN CBRD BDAT FDAT LACT FTRIM SOLD DIED DRY\\2S1825
 

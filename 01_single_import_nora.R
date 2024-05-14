@@ -24,6 +24,10 @@ pacman::p_load(
   skimr          # quick summaries     
 )
 
+# Source Functions ------
+source('FUNCTIONS/import_functions.R')
+source('FUNCTIONS/wrangle_functions.R')
+
 # setup variables used throughout----
 farm1_name <- "Template" # enter Farm name for reports
 filename1 <- "temp" # enter name used for farm in DC export
@@ -51,89 +55,106 @@ early <- 115
 mid <- 131
 
 # Import files----
-# lame and dry files
-import_lame <- function(filename, farm_name) {
-  data <- import(paste0("sourcedata/",
-                        filename, "_lame.csv"),
-                 fill = TRUE) |>
-    clean_names() |>
-    select(-c(technician, v14)) |>
-    mutate(farm = farm_name)
-  return(data)
+folder_path<-'sourcedata'
+
+get_file_names<-tibble(file_name = list.files(folder_path))%>%
+  mutate(files2 = str_replace(file_name, '.CSV|.csv', ''), 
+         folder_path = paste0(folder_path))%>%
+  separate(files2, 
+           into = c('farm_name', 'file_type'), sep = '\\_')
+
+
+
+## lame -----
+lame_files<-get_file_names%>%
+  filter(file_type %in% 'lame')
+
+lame<-NULL
+
+#i=1
+for (i in seq_along (lame_files$file_name)){
+lame_import <- import_csv(path_to_file = paste0(lame_files$folder_path[[i]], '/', lame_files$file_name[[i]]))
+lame<-bind_rows(lame, lame_import)
 }
 
-farm1_lame <- import_lame(filename1, farm1_name)
 
-# import dry data ####
-import_dry <- function(filename, farm_name) {
-  read_csv(paste0("sourcedata/", filename, "_dry_cull.csv"), 
-           show_col_types = FALSE) |>
-    clean_names() |>
-    # change the x16 as needed might be 17 if included FTREM
-    select(-c(protocols, technician, x14)) |>
-    mutate(farm = farm_name,
-           # needed as some columns shifted due to commas in rem feild
-           dim = as.numeric(dim))
+
+## dry ----------
+dry_files<-get_file_names%>%
+  filter(file_type %in% 'dry')
+
+dry<-NULL
+
+#i=1
+for (i in seq_along (dry_files$file_name)){
+    dry_import <- import_csv(path_to_file = paste0(dry_files$folder_path[[i]], '/', dry_files$file_name[[i]]))
+  dry<-bind_rows(dry, dry_import)
 }
 
-farm1_dry <- import_dry(filename1, farm1_name)
 
-# merge farms
-lame <- farm1_lame
-dry <- farm1_dry
+# merge farms ---------------farms are already merged with the new import method
+# lame <- farm1_lame
+# dry <- farm1_dry
 
-# remove imported data
-rm(farm1_lame, farm1_dry)
+# remove imported data -------------
+#rm(farm1_lame, farm1_dry)
 
-# import denominator data 
+# import denominator data--------------
+deno_files<-get_file_names%>%
+  filter(file_type %in% c('all', 'lact1', 'lact2', 'lact3', 'lact4p'))
 
-# create function to import until month column has = signs
-import_until_condition <- function(file, stop_sequence) {
-  lines <- readLines(file)
-  rows_to_import <- numeric()
-  
-  for (i in 1:length(lines)) {
-    if (grepl(stop_sequence, lines[i])) {
-      rows_to_import <- 1:(i - 2)
-      break
-    }
-  }
-  
-  imported_data <- read.csv(file, header = TRUE, 
-                            nrows = length(rows_to_import))
-  return(imported_data)
+deno<-NULL
+
+#i=1
+for (i in seq_along (deno_files$file_name)){
+  deno_import <- import_csv(path_to_file = paste0(deno_files$folder_path[[i]], '/', deno_files$file_name[[i]]))
+  deno<-bind_rows(deno, deno_import)
 }
 
-# function to repeat naming
-import_and_transform <- function(file, farm_name, stop_sequence, column_name) {
-  import_until_condition(file, stop_sequence) |> 
-    clean_names() %>% 
-    mutate(farm = farm_name,
-           ftyearmon = my(dates),
-           ftyearmon = as.yearmon(ftyearmon),
-           !!sym(column_name) := milking) %>% 
-    select(farm, ftyearmon, !!sym(column_name))
-}
+## inport farm 1 denominator files----------
 
-# importing data 
-# farm 1
-farm1_mall <- import_and_transform(paste0("sourcedata/", 
-                                          filename1, "_all.csv"),
-                                   farm1_name, "========", "allmilking")
-farm1_m1 <- import_and_transform(paste0("sourcedata/",
-                                        filename1, "_lact1.csv"),
-                                 farm1_name, "========", "l1milking")
-farm1_m2 <- import_and_transform(paste0("sourcedata/",
-                                        filename1, "_lact2.csv"),
-                                 farm1_name, "========", "l2milking")
-farm1_m3 <- import_and_transform(paste0("sourcedata/", filename1,
-                                        "_lact3.csv"), farm1_name,
-                                 "========", "l3milking")
-farm1_m4p <- import_and_transform(paste0("sourcedata/", filename1,
-                                         "_lact4p.csv"), farm1_name,
-                                  "========", "l4pmilking")
+         
+# farm1_mall <- import_and_transform(paste0("sourcedata/", 
+#                                           filename1, "_all.csv"),
+#                                    farm1_name, "========", "allmilking")
+# farm1_m1 <- import_and_transform(paste0("sourcedata/",
+#                                         filename1, "_lact1.csv"),
+#                                  farm1_name, "========", "l1milking")
+# farm1_m2 <- import_and_transform(paste0("sourcedata/",
+#                                         filename1, "_lact2.csv"),
+#                                  farm1_name, "========", "l2milking")
+# farm1_m3 <- import_and_transform(paste0("sourcedata/", filename1,
+#                                         "_lact3.csv"), farm1_name,
+#                                  "========", "l3milking")
+# farm1_m4p <- import_and_transform(paste0("sourcedata/", filename1,
+#                                          "_lact4p.csv"), farm1_name,
+#                                   "========", "l4pmilking")
 
-# combine denominator files
+farm1_mall <- import_csv(paste0("sourcedata/", filename1, "_all.csv"))%>%
+  mutate(farm = farm1_name,
+         lact_grp = 'All')
+
+farm1_m1 <- import_csv(paste0("sourcedata/", filename1, "_lact1.csv.csv"))%>%
+  mutate(farm = farm1_name,
+         lact_grp = '1st Lact')
+
+farm1_m2 <- import_csv(paste0("sourcedata/", filename1, "_lact2.csv.csv"))%>%
+  mutate(farm = farm1_name,
+         lact_grp = '2nd Lact')
+
+farm1_m3<- import_csv(paste0("sourcedata/", filename1, "_lact3.csv.csv"))%>%
+  mutate(farm = farm1_name,
+         lact_grp = '3rd Lact')
+
+farm1_m4<- import_csv(paste0("sourcedata/", filename1, "_lact4p.csv.csv"))%>%
+  mutate(farm = farm1_name,
+         lact_grp = '4+ Lact')
+
+         
+
+
+
+## combine denominator files-----
 
 mall <- farm1_mall %>% 
   left_join(farm1_m1,  by = c("farm", "ftyearmon")) %>% 
@@ -141,39 +162,41 @@ mall <- farm1_mall %>%
   left_join(farm1_m3,  by = c("farm", "ftyearmon")) |> 
   left_join(farm1_m4p,  by = c("farm", "ftyearmon"))
 
-rm(farm1_m1, farm1_m2, farm1_m3, farm1_m4p)
+rm(farm1_m1, farm1_m2, farm1_m3, farm1_m4p) #clean up environment
 
+## write out denominator file -------
 export(mall, "datafiles/mall.rds")
 rm(farm1_mall)
 
 # Data Management:lame----
 # change lame file names
-lame <- lame %>% 
-  rename(birth = birth_date_item,
-         frsh = fresh_date_item,
-         breed = breed_item) |> 
-  mutate(cowid = id,
-         ftdim = dim,
-         # quiet stops warnings
-         birth = mdy(birth, quiet = TRUE),
-         frsh = mdy(frsh, quiet = TRUE),
-         ftdat = mdy(date),
-         ftmon = month(ftdat),
-         ftyear = year(ftdat),
-         ftyearmon = as.yearmon(ftdat)
-         ) %>%
+lame2 <- lame %>% 
+  wrangle_events_basic() %>% #parses dates and renames
   # filter out adults and goes back 60 months
   filter(frsh != is.na(frsh)) %>% 
-  filter(ftyearmon >= startmon & ftyearmon <= endmon) %>% 
-  select(-c(id, dim, date))
+  filter(ftyearmon >= startmon & ftyearmon <= endmon) %>% #consider using the min and max dates in the data and then going back a certain number of days from the max date instead of hard coding at the beginin of the script
+  select(-id, -dim, -date) #got rid of a depreciated warning
 
-#recode lesions info----
-# create functions to avoid repeating code
-str_contains <- function(string, pattern, ignore_case=TRUE){
-  str_detect(string, regex(pattern, ignore_case=ignore_case))
+
+
+# deal with duplicates------------
+lame <- lame |> 
+  #deal with duplicates here
+  distinct()%>%
+  group_by(farm, cowid, ftdat, lact, event)%>%
+  summarize(ct_rows = sum(n()), 
+            remark = paste0(remark, collapse = ','), 
+            protocols = paste0(protocols, collapse = ','))%>%
+  ungroup()
+  
+  
+  # create functions to avoid repeating code
+  str_contains <- function(string, pattern, ignore_case=TRUE){
+    str_detect(string, regex(pattern, ignore_case=ignore_case))
   }
 
-lame <- lame |> 
+# classify lesions
+  lame <- lame |> 
   mutate(event = str_trim(event), # removes stupid spaces from DC
          trimonly = (str_contains(event, "Footrim") & 
                        str_contains(remark, "TRM") |
@@ -262,11 +285,21 @@ lame <- lame |>
          noninf = soleulcer | wld | solefract | hem) |>
   mutate(across(where(is_logical), function(x) { +x }))
          
-# delete footrim events when both a trim and lame entered on same day
-lame <- lame %>% 
-  group_by(farm, cowid, ftdat) %>% 
-  slice_min(trimonly) %>% 
-  ungroup() 
+# delete footrim events when both a trim and lame entered on same day, no longer needed, handled duplicates differently
+lame2 <- lame %>%
+  group_by(farm, cowid, ftdat) %>%
+  slice_min(trimonly) %>%
+  ungroup()
+
+#lets discuss what slice_min does and whether or not it is what we want here.
+test_slice_min_trimonly<-lame%>%
+  arrange(farm, cowid, ftdat, trimonly)%>%
+  group_by(farm, cowid, ftdat, lact, dim)%>%
+  summarize(ct_rows = sum(n()), 
+            trimonly = paste0(trimonly, collapse = ','), 
+            remark = paste0(remark, collapse = ','), 
+            protocols = paste0(protocols, collapse = ','))%>%
+  ungroup()
 
 # sites----
 # to get site of lesions (for farms with sites)
@@ -283,22 +316,40 @@ lameleg <- lame %>%
   select(farm, cowid, ftdat, event,remark, dd, footrot, site,
          soleulcer, solefract, wld, hem,
          injury, other, cork, toe, thin, inf, noninf, toeulcer, axial ) %>% 
-  mutate(leg = case_when(str_detect(remark, "RF") ~ "RF",
-                         str_detect(remark, "Q2") ~ "RF",
-                         str_detect(remark, "LF") ~ "LF",
-                         str_detect(remark, "Q1") ~ "LF",
-                         str_detect(remark, "LH") ~ "LH",
-                         str_detect(remark, "LB") ~ "LH",
-                         str_detect(remark, "LR") ~ "LH",
-                         str_detect(remark, "Q4") ~ "LH",
-                         str_detect(remark, "RH") ~ "RH",
-                         str_detect(remark, "RB") ~ "RH",
-                         str_detect(remark, "RR") ~ "RH",
-                         str_detect(remark, "Q3") ~ "RH",
-                         str_detect(remark, "RRLR") ~ "RE",
-                         str_detect(remark, "BRBL") ~ "RE",
-                         str_detect(remark, "LHRH") ~ "RE",
-                         ),
+  # mutate(leg = case_when( str_detect(remark, "RRLR") ~ "RE", #these need to be before the singlur detections
+  #                        str_detect(remark, "BRBL") ~ "RE",
+  #                        str_detect(remark, "LHRH") ~ "RE",
+  #                        str_detect(remark, "RF") ~ "RF",
+  #                        str_detect(remark, "Q2") ~ "RF",
+  #                        str_detect(remark, "LF") ~ "LF",
+  #                        str_detect(remark, "Q1") ~ "LF",
+  #                        str_detect(remark, "LH") ~ "LH",
+  #                        str_detect(remark, "LB") ~ "LH",
+  #                        str_detect(remark, "LR") ~ "LH",
+  #                        str_detect(remark, "Q4") ~ "LH",
+  #                        str_detect(remark, "RH") ~ "RH",
+  #                        str_detect(remark, "RB") ~ "RH",
+  #                        str_detect(remark, "RR") ~ "RH",
+  #                        str_detect(remark, "Q3") ~ "RH",
+  #                       
+  #                        ),
+mutate(leg = case_when( str_detect(remark, "RRLR") ~ "RE", #these need to be before the singlur detections
+                        str_detect(remark, "BRBL") ~ "RE",
+                        str_detect(remark, "LHRH") ~ "RE",
+                        str_detect(remark, "RF") ~ "RF",
+                        str_detect(remark, "Q2") ~ "RF",
+                        str_detect(remark, "LF") ~ "LF",
+                        str_detect(remark, "Q1") ~ "LF",
+                        str_detect(remark, "LH") ~ "LH",
+                        str_detect(remark, "LB") ~ "LH",
+                        str_detect(remark, "LR") ~ "LH",
+                        str_detect(remark, "Q4") ~ "LH",
+                        str_detect(remark, "RH") ~ "RH",
+                        str_detect(remark, "RB") ~ "RH",
+                        str_detect(remark, "RR") ~ "RH",
+                        str_detect(remark, "Q3") ~ "RH",
+                        
+),
          leg = as_factor(leg)
          )
 ## need to get cow with multiple lesion on 1 day into 1 row 

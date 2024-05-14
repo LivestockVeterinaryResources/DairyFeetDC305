@@ -53,16 +53,16 @@ mid <- 131
 # Import files----
 # lame and dry files
 import_lame <- function(filename, farm_name) {
-  data <- import(paste0("sourcedata/",
+  data <- read_csv(paste0("sourcedata/",
                         filename, "_lame.csv"),
-                 fill = TRUE) |>
+                   col_types = cols(.default = col_character()) ) |> #why not use read_csv and force all to characters to be safe
+    select(-c(Technician, starts_with('...'))) |> #why drop technician?
     clean_names() |>
-    select(-c(technician, v14)) |>
     mutate(farm = farm_name)
   return(data)
 }
 
-farm1_lame <- import_lame(filename1, farm1_name)
+farm1_lame3 <- import_lame(filename1, farm1_name)
 
 # import dry data ####
 import_dry <- function(filename, farm_name) {
