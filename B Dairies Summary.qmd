@@ -1,0 +1,372 @@
+---
+title: "Lameness Data Analysis Report"
+subtitle: "B Farms System Wide Comparision"
+author: "Gerard Cramer"
+date: "`r Sys.Date()`"
+format: 
+ pdf:
+  geometry:
+    - top=25mm
+    - bottom=25mm
+    - right=25mm
+    - left=25mm
+  colorlinks: true
+  fig-width: 7
+  fig-height: 5
+  fig-asp: 1
+execute:
+    echo: false
+    message: false
+    warning: false
+---
+
+![](images/logo no background.png){fig-align="center"}
+
+```{r load data, message=FALSE, warning=FALSE, cache=FALSE, include=FALSE, paged.print=TRUE}
+#Setup and load data change dates and farm in this file
+source("02_setup_for_analysis.R")
+```
+
+\newpage
+
+# Introduction
+
+This is an summary of the hoof trimming and lesions data from `r start_month_1y` to `r end_month_1y`.
+Historical data was used starting from 5 years back to determine the lesion history of cows trimmed in the last year.
+
+Of note in this report you will at times see the data split out into the following categories:
+
+-   *All Cases:*
+    -   Includes all occurrences of a lesion.
+    -   A cow could have had the lesion once or 5 times in the past year and all them are included.
+    -   This category is important as it shows how many lame cows the go through the chute.
+-   *First Cases:*
+    -   Includes only cows that had a lesion for the first time in the past year.
+    -   I consider this category the most important category as it tells us how many lame cows we are creating.
+    -   The difference between *first cases* and *all cases* paints a picture of the number of chronic cows.
+-   *Second Cases:*
+    -   Includes only cows that had a lesion for the second time in the past year.
+    -   This category includes cows that will eventually become chronic cows but also some cows that might just have needed a bit more time to heel.
+    -   Three or more cases:
+        -   Includes cows that had a lesion three or more times in the past year.
+        -   These are the chronic cows and once we need to manage appropriately.
+
+Additionally, tables and figures will be presented broken down by lactation group, months or across DIM categories.
+
+\newpage
+
+# Timing of Trimming
+
+@fig-trim_dist compares when cows get trimmed in each lactation and their lameness history between farms.
+`r regfarm7` has a different pattern than other farms for lactation \>1 but that is expected due to it being a newer site.
+The X farms have more cows trimmed earlier in lactation compared to the B farms.
+The peaks at dry-off are to be expected.
+The persistence of the peak of trimmings at dry in cows with a lameness history shows that a relative small number of cows with lesions become problematic and repeat offenders.
+
+```{r}
+#| label: fig-trim_dist
+#| fig-cap: "The majority of trimmings happen at dry-off with a peak in early lactation for some sites. Note: Height of curves are relative to each individual category"
+#| fig-height: 6.5
+
+source("03_trimming_graph_multiple_farms.R")
+
+trimdistgfarm
+```
+
+\newpage
+
+# Time to Lameness After Trimming Graph
+
+@fig-time2lame shows how soon after a normal preventative trimming cows with no history of lesions have another trim with a lesion.
+Since most trimming happens at dry-off we expect a somewhat steady state for the first 60 days.
+Older cows go lame faster at all sites and more so on the X Farms.
+
+From @tbl-time_2_lame_farm we can see that for the whole herd the X farm have about more cows go lame after trimming pretty at all time points.
+<br>
+
+```{r}
+#| label: fig-time2lame
+#| fig-cap: "In all farms 3rd lactation and older cows become lame faster after a normal trim. X farms have more cows go lame and at a faster rate"
+
+km
+
+```
+
+\newpage
+
+# Time to Lameness After Trimming Tables
+
+These tables displays the % of cows with no history of lesions at trimming that become lame at specific time points after trimming.
+
+```{r}
+#| label: tbl-time_2_lame_farm
+#| tbl-cap: "X farms have higher % of cows lame at each time point."
+
+source("04_time_to_lame_table_multiple_farms.R")
+
+tbl_time_2_lame_farm
+```
+
+\newpage
+
+# Lesion Comparison
+
+The frequency of lesions for 1st cases and all cases across the system is shown in @fig-system_lesions.
+@fig-system_les_comp compares the occurence of any lesion across all the sites.
+Similar to the other graphs The X farms have more cases.
+Right now non-infectious lesions are the major cause of lameness across the the system.
+@fig-system_noninf shows that all farms except b1 have White line lesions as the most common non-infectious lesion.
+b7 has a lot of chronic sole ulcers compared to the other sites.
+For infectious lesion shown in @fig-system_inf it is clear that X farms have more DD and footrot.
+The higher number of repeat cases of footrot suggest we are not finding these cases early enough.
+
+### Most common lesions across all the dairies
+
+```{r}
+#| label: fig-system_lesions
+#| fig-cap: "Majority of lesions are non infectious lesion with majority being white line related lesions. Note: Non-infectious = soleulcer and white line, Inf = footrot and DD, Toe = thin soles and toe ulcers."
+#| fig-height: 5.5
+source("05_lesions_graph_multiple_farms.R")
+
+les_system
+
+```
+
+\newpage
+
+### Farm comparison for any lesion
+
+```{r}
+#| label: fig-system_les_comp
+#| fig-cap: "For any lesion other than b1, farms have similar occurrence of 1st cases but some variation in chronic cases with the X farms having more"
+#| fig-height: 5.5
+
+farmgclev
+```
+
+\newpage
+
+### Farm comparison for sole ulcers and white line lesions
+
+```{r}
+#| label: fig-system_noninf
+#| fig-cap: "White Line lesions are most frequent lesions other than b1. b7 has a lot of chronic sole ulcer cases"
+#| fig-height: 5.5
+
+non_inf_les
+```
+
+\newpage
+
+### Farm comparison for digital dermatitis and footrot lesions
+
+```{r}
+#| label: fig-system_inf
+#| fig-cap: "X farms have more DD and footrot cases."
+#| fig-height: 5.5
+
+inf_les
+```
+
+\newpage
+
+## What is success rate of lesion?
+
+@tbl-repeat and @tbl-repeat_2 shows the % of cows in the last year that had a lesion for the first time that repeated and got that same lesion.
+This is at the cow level not necessarily repeated on the same leg.
+From this table we can see that there is a lot of variation between farms.
+b8 is the only farm right now that has a structured recheck program for all lesions that get a block and I think that is responsible for part of it's low repeat %.
+
+### 1st Case Repeat %
+
+```{r}
+#| label: tbl-repeat
+#| tbl-cap: "Repeat % for cows after their  2nd case"
+
+source("06_lesions_repeat_multiple_farms.R")
+
+reptable1
+```
+
+### 2nd Cases Repeat %
+
+```{r}
+#| label: tbl-repeat_2
+#| tbl-cap: "Repeat % for cows after their  2nd case"
+
+reptable2
+```
+
+\newpage
+
+# DIM Distribution of non-infectious lesions across sites
+
+@fig-non_inf_dim shows when cows are getting non_infectious lesions at each site.
+The graphs shows the DIM distribution (% of total) of 1st, 2nd life time lesions, and a total for each site.
+b6 and b7 have a more pronounced earlier lactation peak.
+Given that there are no really big spikes at around 300 DIM on any site suggest we are doing a good job finding lesions throughout lactation.
+
+```{r}
+#| label: fig-non_inf_dim 
+#| fig-height: 6.5
+#| fig-cap: DIM pattern of non-infectious lesions.
+
+source("08_noninf_DIM_multiple_farms.R")
+
+dimg_farm1
+
+```
+
+\newpage
+
+# DIM Distribution of infectious lesions across sites
+
+@fig-inf_dim shows when cows are getting infectious lesions at each site.
+The graphs shows the DIM distribution (% of total) of 1st, 2nd life time lesions, and a total for each site.
+All dairies have a more pronounced earlier lactation peak, suggesting DD and footrot are not controlled adequately during the dry period.
+
+```{r}
+#| label: fig-inf_dim 
+#| fig-height: 6.5
+#| fig-cap: DIM pattern of non-infectious lesions.
+
+source("09_inf_DIM_multiple_farms.R")
+
+dimg_farm1
+
+```
+
+\newpage
+
+# Impact of Season for Non-Infectious lesions
+
+```{r}
+#| label: season_setup
+
+source("10_season_data_setup.R")
+
+```
+
+There is an impact of the summer heat on non-infectious lesion occurrence.
+It is more pronounced in the X and for all sites it is bigger for cows that have a history of lesions.
+
+```{r}
+#| label: fig-season 
+#| fig-height: 7
+#| fig.width: 7
+#| fig-cap: "There is an impact of heat stress on lesions mainly on cows with a history of lesions"
+source("11_noninf_season_graph_multiple_farms.R")
+
+noninf_season
+
+```
+
+\newpage
+
+# Impact of Season for Infectious lesions
+
+There is no consistent pattern in the seasonal pattern for infectious lesion occurrence.
+There is a lot of farm to farm variation in the South Dakota herds that is reflective start up of b6.
+
+```{r}
+#| label: fig-season_inf 
+#| fig-height: 7
+#| fig.width: 7
+#| fig-cap: "No clear sesaonl pattern for infectious lesions"
+source("12_inf_season_graph_multiple_farms.R")
+
+inf_season
+
+```
+
+\newpage
+
+# Time to next lesion after 1st Non Infectious lesion
+
+@fig-time2lame_after and @tbl-time_2_lame_after show that across farms the time to a next lesion after a cow's first non infectious lesion is relatively consistent for X farms but much higher than B farms.
+
+```{r}
+#| label: fig-time2lame_after
+#| fig-cap: "Cows in the X farms get another lesion faster and more frequently after their first non-infectious lesion."
+#| fig-height: 7
+source("13_time_to_lame_after_lame.R")
+km
+```
+
+\newpage
+
+### Time to next lameness tables
+
+```{r}
+#| label: tbl-time_2_lame_after
+#| tbl-cap: "Probability of a cow having any other lesion after a cow's first non infectious lesion at specific time points."
+tbl_time_2_lame_farm
+```
+
+\newpage
+
+# Survival of cows after treatment for lesions
+
+The following figures illustrate how quickly after a lesion diagnosis cows are culled (sold/died).
+These figures are survival curves and have survival on the *y axis* (basically the % of cows remaining in the herd) and time since the lesion on the *x axis.* These graphs have 4 different curves on them to show the difference between cows that have never had any lesion (healthy), and cows with one, two or three or more lifetime cases of the specific lesion.
+Lines that are higher indicate cows that do not get culled as fast.
+The shading around the line indicates the precision around the estimate of the line.
+Typically if the shading overlaps we consider the lines similar with no evidence of a difference.
+
+The tables following the graphs give the number of cows culled after 30, 120, and 180 days to give a sense of the numerical values behind the curves.
+
+## Survival Curve of Cows with Non-infectious Lesions
+
+From @fig-noninf_surv it is clear from that cows with lesions get culled faster than cows with no lesions at all dairies.
+The culling pressure at b4 is much higher.
+
+```{r}
+#| label: fig-noninf_surv
+#| fig-cap: "Cows with non-infectious lesoins get culled faster on all sites with b4 culling cows in all lesion history catergories the fastest."
+#| fig-height: 5
+
+source("14_noninf_survival_multiple_farms.R")
+
+km
+```
+
+\newpage
+
+## Non-Infectious Culling Tables
+
+@tbl-surv_farm1 shows the probability of cows being culled at various time points.
+The numbers for each site are similar except for b4.This explains some of the better numbers for b4 in the repeat % and time to lameness after a lesion.
+
+```{r}
+#| label: tbl-surv_farm1
+#| tbl-cap: "b4 is much more aggressive culling cows with with non-infecitous lesions"
+
+tbl_surv_farm1
+```
+
+\newpage
+
+## Survival Curves of Cows with Infectious Lesions
+
+Similar to the non_infectious graphs, Cows with lesions at Infectious lesions get culled faster.
+
+```{r}
+#| label: fig-inj_surv
+#| fig-cap: Cows with injuries leave faster at b1 than b4.
+#| fig-height: 5
+
+source("15_inf_survival_multiple_farms.R")
+
+km
+```
+
+\newpage
+
+## Infectious Culling Tables
+
+```{r}
+#| label: tbl-surv_farm_inf
+#| tbl-cap: "b4 is much more aggressive culling cows with with non-infecitous lesions"
+
+tbl_surv_farm1
+```

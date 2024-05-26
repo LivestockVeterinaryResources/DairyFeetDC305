@@ -6,7 +6,7 @@
 mallavgm <- mall %>% 
   #to get 12 months yearmon format p year + month#-1/112
   filter(ftyearmon >= startym) %>% 
-  filter(ftyearmon <= endym)
+  filter(ftyearmon < endym)
 
 # lesion totals by month by farm
 ygerrormall <- lame4 %>%
