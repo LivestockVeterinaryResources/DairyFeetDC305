@@ -2,7 +2,7 @@
 tablegs <- lameleg %>%
     filter(ftdat >= startdat) %>%
     select(site, cowid, leg) %>%
-    mutate(leg = fct_relevel(leg, 
+    mutate(leg = factor(leg, #this used to use fct_relevel instead of factor, but it was throwing and error because this farm didn't have any "Other"
                              c("LF", "RF", "BF",
                                "RH", "LH", "BH", "Other"))) %>% 
     tbl_cross(row = site,

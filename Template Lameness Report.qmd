@@ -27,6 +27,16 @@ execute:
 # priot to running this file need to run 
 # source("01_single_import.R") as it import the data that was exported from Dairycomp as specified in the Readme file
 
+library(tidyverse)
+
+startdat<-read_rds('ReportParameters/startdat.rds')
+enddat<-read_rds('ReportParameters/enddat.rds')
+startym<-read_rds('ReportParameters/startym.rds')
+endym<-read_rds('ReportParameters/endym.rds')
+start_month_1y<-read_rds('ReportParameters/start_month_1y.rds')
+end_month_1y<-read_rds('ReportParameters/end_month_1y.rds')
+regfarm1<-read_rds('ReportParameters/regfarm1.rds')
+
 source("02_setup_for_analysis_single.R")
 
 ```
