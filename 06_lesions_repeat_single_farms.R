@@ -825,7 +825,7 @@ les4 <- les3to4 |>
   select(farm, cowid, frsh, les_date_3, les_date_4) |> 
   left_join(lame4, by = c("farm", "cowid", "frsh"))
 
-# now filter out just specific cows with each case
+# now filter out just specific cows with each case---------
 les1 <- les1 |> 
   filter(!!sym(lesion) == 1, !!sym(life) == 1)
 

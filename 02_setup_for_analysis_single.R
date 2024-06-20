@@ -39,14 +39,14 @@ mall <- import("datafiles/mall.rds")
 lamecull <- import("datafiles/lamecull.rds")
 
 # setup data section----
-# enter dates last 12 months of full data
-startdat <- "2023-01-01"
-enddat <- "2023-12-31"
-startym <- 2023+0/12   #to get 12 months yearmon format year + month#-1/12
-endym <- 2023+11/12
-start_month_1y <- "Jan 2023"
-end_month_1y <- "Dec 2023"
-regfarm1 <- "Template"
+# # enter dates last 12 months of full data
+# startdat <- "2023-01-01"
+# enddat <- "2023-12-31"
+# startym <- 2023+0/12   #to get 12 months yearmon format year + month#-1/12
+# endym <- 2023+11/12
+# start_month_1y <- "Jan 2023"
+# end_month_1y <- "Dec 2023"
+# regfarm1 <- "Template"
 
 # load data----
 lame4 <- lame4 |> 
