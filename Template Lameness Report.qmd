@@ -23,11 +23,22 @@ execute:
 ![](images/logo%20no%20background.png){fig-align="center"}
 
 ```{r load data, message=FALSE, warning=FALSE, cache=FALSE, include=FALSE, paged.print=TRUE}
-#Setup and load data change dates and farm in this file
-# priot to running this file need to run 
-# source("01_single_import.R") as it import the data that was exported from Dairycomp as specified in the Readme file
 
+library(tidyverse)
+#Setup and load data change dates and farm in this file
+startdat<-read_rds('reportparameters/startdat.rds')
+enddat<-read_rds('reportparameters/enddat.rds')
+startym<-read_rds('reportparameters/startym.rds')
+endym<-read_rds('reportparameters/endym.rds')
+start_month_1y<-read_rds('reportparameters/start_month_1y.rds')
+end_month_1y<-read_rds('reportparameters/end_month_1y.rds')
+regfarm1<-read_rds('reportparameters/regfarm1.rds')
+# priot to running this file need to run 
+ #source("01_single_import.R") #as it import the data that was exported from Dairycomp as specified in the Readme file
+# 
 source("02_setup_for_analysis_single.R")
+
+
 
 ```
 
@@ -328,8 +339,19 @@ tbl_surv_farm1
 #| label: tbl-leg
 #| tbl-cap: "Leg Distribution of Lesions"
 
-source("17_leg_table.R")
 
-tablegs
+
+#am getting the error below when I try to knit, commenting out this section for the moment, will come back to it.
+# > source("17_leg_table.R")
+# Warning: There was 1 warning in `mutate()`.
+# ℹ In argument: `leg = fct_relevel(leg, c("LF", "RF", "BF", "RH", "LH", "BH", "Other"))`.
+# Caused by warning:
+# ! 3 unknown levels in `f`: BF, BH, and OtherError in get_columns_id(x[[part]], j) : invalid columns selection
+# available range: [1, 6]
+# issues: 8
+
+# source("17_leg_table.R")
+# 
+# tablegs
 
 ```

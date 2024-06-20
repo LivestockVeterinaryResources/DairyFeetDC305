@@ -43,15 +43,15 @@ regfarm1 <- "Template"
 
 
 #these are written out so that the render function of quarto can access them.  They may not all be necessary?
-write_rds(startdat, 'ReportParameters/startdat.rds')
-write_rds(enddat, 'ReportParameters/enddat.rds')
-write_rds(startym, 'ReportParameters/startym.rds')
-write_rds(endym, 'ReportParameters/endym.rds')
-write_rds(start_month_1y, 'ReportParameters/start_month_1y.rds')
-write_rds(end_month_1y, 'ReportParameters/end_month_1y.rds')
-write_rds(regfarm1, 'ReportParameters/regfarm1.rds')
+write_rds(startdat, 'reportparameters/startdat.rds')
+write_rds(enddat, 'reportparameters/enddat.rds')
+write_rds(startym, 'reportparameters/startym.rds')
+write_rds(endym, 'reportparameters/endym.rds')
+write_rds(start_month_1y, 'reportparameters/start_month_1y.rds')
+write_rds(end_month_1y, 'reportparameters/end_month_1y.rds')
+write_rds(regfarm1, 'reportparameters/regfarm1.rds')
 
 
 source('01_single_import.R')
 source('02_setup_for_analysis_single.R')
-quarto::quarto_render("document.qmd", output_format = "pdf")
+quarto::quarto_render("Template Lameness Report.qmd", output_format = "pdf")
