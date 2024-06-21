@@ -4,18 +4,18 @@
 
 ## function
 
-survival_data <- function(data = lamecull, censor_var = "censordat",
-                          disease_date = "ftdat",
-                          control = "lifexlame", life_x_disease) {
+survival_data <- function(data = lamecull, censor_var = censordat,
+                          disease_date = ftdat,
+                          control = lifexlame, life_x_disease) {
   # need to do this to use as.numeric to convert duration
-  censor_date <- ensym(censor_var)
+  #censor_date <- ensym(censor_var)
   data |> 
     # reduce data
-    select(farm, cowid, {{disease_date}}, !!censor_date, 
+    select(farm, cowid, {{disease_date}}, {{censor_var}}, 
            {{control}}, {{life_x_disease}}
            ) |>  
     ## this as.numeric creates NA's not sure why as it works without function
-  mutate (censor_date = as.numeric(!!censor_date),
+  mutate (censor_date = as.numeric({{censor_var}}),
          # create variables to condition on
          life_x_disease = case_when({{ control }} == 0 ~ 0,
                                     {{ life_x_disease }} == 1 ~ 1,
@@ -36,29 +36,11 @@ survival_data <- function(data = lamecull, censor_var = "censordat",
          )
 }
 
-surval_inf <- survival_data(life_x_disease = "lifexnoninf", 
-                            disease_date = "ftdat")
+# create dataset
+surval_inf <- survival_data(life_x_disease = lifexnoninf, 
+                            disease_date = ftdat)
 
-survall <- lamecull %>%
-  # filter(farm == regfarm) %>% 
-  # filter out the specific lesion
-  mutate(censordat = as.numeric(censordat)) %>% 
-  mutate(lifexnoninf = case_when(lifexlame == 0 ~ 0,
-                                 lifexnoninf == 1 ~ 1,
-                                 lifexnoninf == 2 ~ 2,
-                                 lifexnoninf >2 ~3,
-                                 TRUE ~ NA),
-         lifexnoninf_cat = case_when(lifexlame == 0 ~ "Never any lesion",
-                                     lifexnoninf == 1 ~ "Once",
-                                     lifexnoninf == 2 ~ "Twice",
-                                     lifexnoninf == 3 ~ "3 or more times",
-                                     TRUE ~ NA) ) |> 
-  mutate(lifexnoninf_cat = fct_reorder(lifexnoninf_cat, 
-                                       lifexnoninf, .na_rm = TRUE))
-
-# just graph 1 year
-survall_1y <- survall |>
-  filter(ftdat >= startdat) 
+# fit KM data
 
 fitKM <- survfit(Surv(censordat, culled) ~ lifexnoninf, data = survall_1y)
 km<- ggsurvplot(fitKM, 
