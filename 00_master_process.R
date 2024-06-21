@@ -41,8 +41,8 @@ start_month_1y <- "Jan 2023"
 end_month_1y <- "Dec 2023"
 regfarm1 <- "Template"
 
-
-#these are written out so that the render function of quarto can access them.  They may not all be necessary?
+#write out parameters for use later------------
+#these are written out so that the render function of quarto can access them.  They may not all be necessary?------------
 write_rds(startdat, 'reportparameters/startdat.rds')
 write_rds(enddat, 'reportparameters/enddat.rds')
 write_rds(startym, 'reportparameters/startym.rds')
@@ -51,7 +51,12 @@ write_rds(start_month_1y, 'reportparameters/start_month_1y.rds')
 write_rds(end_month_1y, 'reportparameters/end_month_1y.rds')
 write_rds(regfarm1, 'reportparameters/regfarm1.rds')
 
-
+#run the first step---------------
 source('01_single_import.R')
+
+#run setup step 2 -------------------
 source('02_setup_for_analysis_single.R')
-quarto::quarto_render("Template Lameness Report.qmd", output_format = "pdf")
+
+#generate report ----------------- 
+##NOTE: 06_needs finalized before this will run-------------
+quarto::quarto_render("Template Lameness Report.qmd", output_format = "pdf") #this has an error that needs fixed for 017 chunk

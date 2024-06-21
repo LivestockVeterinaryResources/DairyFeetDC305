@@ -3,17 +3,75 @@
 #Testing stuff ------------
 lame4_original<-lame4 #for testing
 cowid_list<-unique(lame4_original$cowid)[c(3:7)] #select a few cows for testing
-lame4<-lame4_original%>%
-  filter(cowid %in% cowid_list)
+lame4<-lame4_original#%>%
+  #filter(cowid %in% 7)
+  #filter(cowid %in% cowid_list)
 
 
+#explore method of looking at retreats------------------
+lesions<-lame4%>%
+  filter(lifexlame>0)%>%
+  filter(trimonly<1)%>%
+  select(farm, cowid, frsh, ftdat, dd, wld, soleulcer, footrot)%>%
+  pivot_longer(cols = c('dd', 'wld', 'soleulcer', 'footrot'), 
+               names_to = 'lesion', 
+               values_to = 'lesion_present')%>%
+  filter(lesion_present>0)%>%
+  arrange(farm, cowid, #frsh, 
+          ftdat)%>%
+  group_by(farm, cowid, lesion)%>%
+  mutate(lesion_ct = 1:n())%>%
+  ungroup()%>%
+  arrange(farm, cowid, #frsh, 
+           ftdat)%>%
+  group_by(farm, cowid)%>%
+  mutate(lifexlesion_ct = 1:n())%>%
+  ungroup()
+
+lifexlesions<-lame4%>%
+  filter(lifexlame>0)%>%
+  select(farm, cowid, lifexdd, lifexwld, lifexulc, lifexfr)%>%
+  pivot_longer(cols = c('lifexdd', 'lifexwld', 'lifexulc', 'lifexfr'), 
+               names_to = 'lesion', 
+               values_to = 'lifexlesion_ct')%>%
+  filter(lifexlesion_ct>0)%>%
+  distinct()
 
 
+lesion_summary<-lesions%>%
+  group_by(farm, lesion, lesion_ct)%>%
+  summarise(#ct_cows = n_distinct(cowid), 
+            ct_rows = sum(n())
+            )%>%
+  ungroup()%>%
+  pivot_wider(names_from = 'lesion_ct', 
+              values_from = 'ct_rows')%>%
+  mutate(Fail1to2 = `2`/`1`, 
+         Fail2to3 = `3`/`2`, 
+         Fail3to4 = `4`/`3`)
 
+lesion_summary_rearrange<-lesion_summary%>%
+    select(farm, lesion, contains('Fail'))%>%
+    pivot_longer(cols = c(contains('Fail')), 
+                 names_to = 'case', 
+                 values_to = 'pct')%>%
+    mutate(pct = round(pct*100, digits = 1))%>%
+    pivot_wider(names_from = 'lesion', 
+                values_from = 'pct')%>%
+    select(farm, case, dd, wld, soleulcer, footrot)%>%
+    rename(dd_repeat = dd, 
+           wld_repeat = wld, 
+           ulc_repeat = soleulcer, 
+           fr_repeat = footrot)
+
+
+#********************------------
 # new code for repeats--------------
+
+#function for calculating repeats-------------
 fxn_get_lesion_dates<-function(lesion, life){
   
-  if(dim(lame4)[1]>0)
+  #if(dim(lame4)[1]>0)
   les1 <<- lame4 |>
     # filter out the specific lesion
     filter(lifexlame >0) %>%
@@ -22,7 +80,7 @@ fxn_get_lesion_dates<-function(lesion, life){
     select(farm, cowid, frsh, les_date_1) |>
     left_join(lame4, by = c("farm", "cowid", "frsh"))
   
-  if(dim(les1)[1]>0)
+  #if(dim(les1)[1]>0)
   les2<<- les1 |>
     filter(!!sym(life) > 0 ) |>
     filter(les_date_1 <= ftdat) %>%
@@ -31,7 +89,7 @@ fxn_get_lesion_dates<-function(lesion, life){
     select(farm, cowid, frsh, les_date_1, les_date_2) |>
     left_join(lame4, by = c("farm", "cowid", "frsh"))
   
-  if(dim(les2)[1]>0)
+  #if(dim(les2)[1]>0)
   les2to3 <<- lame4 |>
     # filter out the specific lesion
     filter(  lifexlame >0) %>%
@@ -40,7 +98,7 @@ fxn_get_lesion_dates<-function(lesion, life){
     select(farm, cowid, frsh, les_date_2) |>
     left_join(lame4, by = c("farm", "cowid", "frsh"))
   
-  if(dim(les2to3)[1]>0)
+  #if(dim(les2to3)[1]>0)
   les3 <<- les2to3 |>
     filter(!!sym(life) > 0 ) |>
     filter(les_date_2 <= ftdat) %>%
@@ -49,7 +107,7 @@ fxn_get_lesion_dates<-function(lesion, life){
     select(farm, cowid, frsh, les_date_2, les_date_3) |>
     left_join(lame4, by = c("farm", "cowid", "frsh"))
   
-  if(dim(les3)[1]>0)
+  #if(dim(les3)[1]>0)
   les3to4 <<- lame4 |>
     # filter out the specific lesion
     filter(  lifexlame >0) %>%
@@ -58,7 +116,7 @@ fxn_get_lesion_dates<-function(lesion, life){
     select(farm, cowid, frsh, les_date_3) |>
     left_join(lame4, by = c("farm", "cowid", "frsh"))
   
-  if(dim(les3to4)[1]>0)
+  #if(dim(les3to4)[1]>0)
   les4 <<- les3to4 |>
     filter(!!sym(life) > 0 ) |>
     filter(les_date_3 <= ftdat) %>%
@@ -68,15 +126,15 @@ fxn_get_lesion_dates<-function(lesion, life){
     left_join(lame4, by = c("farm", "cowid", "frsh"))
   
   # now filter out just specific cows with each case
-  if(dim(les1)[1]>0)
+  #if(dim(les1)[1]>0)
   les1 <<- les1 |>
     filter(!!sym(lesion) == 1, !!sym(life) == 1)
   
-  if(dim(les2)[1]>0)
+  #if(dim(les2)[1]>0)
   les2 <<- les2 |>
     filter(!!sym(lesion) == 1, !!sym(life) == 2)
   
-  if((dim(les1)[1]>0)&(dim(les2)[1]>0))
+  #if((dim(les1)[1]>0)&(dim(les2)[1]>0))
   reples1to2 <<- bind_rows(les1, les2) |>
     select(farm, cowid, !!sym(life)) %>%
     group_by(farm, !!sym(life)) %>%
@@ -87,15 +145,15 @@ fxn_get_lesion_dates<-function(lesion, life){
            case = 1) %>%
     select(farm, case, les_repeat)
   
-  if(dim(les2to3)[1]>0)
+  #if(dim(les2to3)[1]>0)
   les2to3 <<- les2to3 |>
     filter(!!sym(lesion) == 1, !!sym(life) == 2)
   
-  if(dim(les3)[1]>0)
+  #if(dim(les3)[1]>0)
   les3 <<- les3 |>
     filter(!!sym(lesion) == 1, !!sym(life) == 3)
   
-  if((dim(les3)[1]>0)&(dim(les2to3)[1]>0))
+  #if((dim(les3)[1]>0)&(dim(les2to3)[1]>0))
   reples2to3 <<- bind_rows(les3, les2to3) |>
     select(farm, cowid, !!sym(life)) %>%
     group_by(farm, !!sym(life)) %>%
@@ -106,15 +164,15 @@ fxn_get_lesion_dates<-function(lesion, life){
            case = 2) %>%
     select(farm, case, les_repeat)
   
-  if(exists('les3to4'))
+  #if(exists('les3to4'))
   les3to4 <<- les3to4 |>
     filter(!!sym(lesion) == 1, !!sym(life) == 3)
   
-  if(exists('les4'))
+ # if(exists('les4'))
   les4 <<- les4 |>
     filter(!!sym(lesion) == 1, !!sym(life) == 4)
   
-  if(exists('les4')&exists('les3to4'))
+  #if(exists('les4')&exists('les3to4'))
   reples3to4 <<- bind_rows(les4, les3to4) |>
     select(farm, cowid, !!sym(life)) %>%
     group_by(farm, !!sym(life)) %>%
@@ -656,3 +714,6 @@ reptable1 <- reptable %>%
 reptable_for_test<-read_rds('reptable_for_test.rds')
 
 waldo::compare(reptable_for_test, reptable)
+
+waldo::compare(reptable_for_test, lesion_summary_rearrange)
+
