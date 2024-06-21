@@ -12,43 +12,53 @@ lame4<-lame4_original#%>%
 lesions<-lame4%>%
   filter(lifexlame>0)%>%
   filter(trimonly<1)%>%
-  select(farm, cowid, frsh, ftdat, dd, wld, soleulcer, footrot)%>%
-  pivot_longer(cols = c('dd', 'wld', 'soleulcer', 'footrot'), 
+  select(farm, cowid,  #lifexlame,  #contains('life')
+         lifexdd, lifexulc, lifexwld, lifexfr)%>%
+  pivot_longer(cols = c( "lifexdd", "lifexulc", "lifexwld",
+                        #"lifexthin",   "lifextoe",    
+                        "lifexfr",    
+                        # "lifexfract",  "lifexcork",
+                        # "lifexaxial",  "lifexhem",    "lifexother", 
+                        # "lifexinf",    "lifexnoninf", "lifexinj"
+                        ), 
                names_to = 'lesion', 
-               values_to = 'lesion_present')%>%
-  filter(lesion_present>0)%>%
-  arrange(farm, cowid, #frsh, 
-          ftdat)%>%
-  group_by(farm, cowid, lesion)%>%
-  mutate(lesion_ct = 1:n())%>%
-  ungroup()%>%
-  arrange(farm, cowid, #frsh, 
-           ftdat)%>%
-  group_by(farm, cowid)%>%
-  mutate(lifexlesion_ct = 1:n())%>%
-  ungroup()
+               values_to = 'lesion_ct')%>%
+  distinct()%>%
+  filter(lesion_ct>0)#%>%
+  # arrange(farm, cowid, #frsh, 
+  #         ftdat)%>%
+  # group_by(farm, cowid, lesion)%>%
+  # mutate(lesion_ct = 1:n())%>%
+  # ungroup()#%>%
+  # arrange(farm, cowid, #frsh, 
+  #          ftdat)%>%
+  # group_by(farm, cowid)%>%
+  # mutate(lifexlesion_ct = 1:n())%>%
+  # ungroup()
 
-lifexlesions<-lame4%>%
-  filter(lifexlame>0)%>%
-  select(farm, cowid, lifexdd, lifexwld, lifexulc, lifexfr)%>%
-  pivot_longer(cols = c('lifexdd', 'lifexwld', 'lifexulc', 'lifexfr'), 
-               names_to = 'lesion', 
-               values_to = 'lifexlesion_ct')%>%
-  filter(lifexlesion_ct>0)%>%
-  distinct()
+# lifexlesions<-lame4%>%
+#   filter(lifexlame>0)%>%
+#   select(farm, cowid, lifexdd, lifexwld, lifexulc, lifexfr)%>%
+#   pivot_longer(cols = c('lifexdd', 'lifexwld', 'lifexulc', 'lifexfr'), 
+#                names_to = 'lesion', 
+#                values_to = 'lifexlesion_ct')%>%
+#   filter(lifexlesion_ct>0)%>%
+#   distinct()
 
 
 lesion_summary<-lesions%>%
   group_by(farm, lesion, lesion_ct)%>%
-  summarise(#ct_cows = n_distinct(cowid), 
-            ct_rows = sum(n())
+  summarise(ct_cows = n_distinct(cowid)#, 
+            #ct_rows = sum(n())
             )%>%
   ungroup()%>%
-  pivot_wider(names_from = 'lesion_ct', 
-              values_from = 'ct_rows')%>%
-  mutate(Fail1to2 = `2`/`1`, 
-         Fail2to3 = `3`/`2`, 
-         Fail3to4 = `4`/`3`)
+  group_by(farm, lesion)%>%
+  mutate(lag_ct = lag(ct_cows))%>%
+  ungroup()%>%
+  mutate(pct = ct_cows/lag_ct)
+  # mutate(Fail1to2 = `2`/`1`, 
+  #        Fail2to3 = `3`/`2`, 
+  #        Fail3to4 = `4`/`3`)
 
 lesion_summary_rearrange<-lesion_summary%>%
     select(farm, lesion, contains('Fail'))%>%
