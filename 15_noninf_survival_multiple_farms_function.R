@@ -5,17 +5,17 @@
 ## function
 
 survival_data <- function(data = lamecull, censor_var = censordat,
-                          disease_date = ftdat,
+                          disease_date = ftdat, culled = culled,
                           control = lifexlame, life_x_disease) {
   # need to do this to use as.numeric to convert duration
   #censor_date <- ensym(censor_var)
   data |> 
     # reduce data
-    select(farm, cowid, {{disease_date}}, {{censor_var}}, 
+    select(farm, cowid, {{disease_date}}, {{censor_var}}, {{culled}},
            {{control}}, {{life_x_disease}}
            ) |>  
     ## this as.numeric creates NA's not sure why as it works without function
-  mutate (censor_date = as.numeric({{censor_var}}),
+  mutate (censor_time = as.numeric({{censor_var}}),
          # create variables to condition on
          life_x_disease = case_when({{ control }} == 0 ~ 0,
                                     {{ life_x_disease }} == 1 ~ 1,
@@ -40,7 +40,17 @@ survival_data <- function(data = lamecull, censor_var = censordat,
 surval_inf <- survival_data(life_x_disease = lifexnoninf, 
                             disease_date = ftdat)
 
-# fit KM data
+# fit KM data 
+# not working yet
+km_fit <- function(data, time = censor_time, event = culled){
+  data_surv <- data |> 
+    mutate(surv_object = Surv(time = {{time}}, event = {{culled}}))
+  
+  fit <- survfit(surv_object ~ life_x_disease, 
+                 data = data)
+}
+  
+km_test <- km_fit(data = surval_inf)
 
 fitKM <- survfit(Surv(censordat, culled) ~ lifexnoninf, data = survall_1y)
 km<- ggsurvplot(fitKM, 
