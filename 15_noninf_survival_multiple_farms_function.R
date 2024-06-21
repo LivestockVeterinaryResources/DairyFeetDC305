@@ -8,10 +8,13 @@ survival_data <- function(data = lamecull, censor_var = "censordat",
                           disease_date = "ftdat",
                           control = "lifexlame", life_x_disease) {
   data |> 
+    # reduce data
     select(farm, cowid, {{disease_date}}, {{censor_var}}, 
            {{control}}, {{life_x_disease}}
            ) |>  
+    ## this as.numeric creates NA's not sure why as it works without function
   mutate(censor_var2 = as.numeric({{ censor_var }}),
+         # create variables to condition on
          life_x_disease = case_when({{ control }} == 0 ~ 0,
                                     {{ life_x_disease }} == 1 ~ 1,
                                     {{ life_x_disease }} == 2 ~ 2,
