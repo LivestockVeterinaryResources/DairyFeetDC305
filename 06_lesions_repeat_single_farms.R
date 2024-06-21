@@ -2,17 +2,17 @@
 
 #Testing stuff ------------
 lame4_original<-lame4 #for testing
-cowid_list<-unique(lame4_original$cowid)[c(3:7)] #select a few cows for testing
-lame4<-lame4_original#%>%
+cowid_list<-unique(lame4_original$cowid)[c(3:100)] #select a few cows for testing
+lame5<-lame4_original#%>%
   #filter(cowid %in% 7)
   #filter(cowid %in% cowid_list)
 
 
 #explore method of looking at retreats------------------
-lesions<-lame4%>%
+lesions<-lame5%>%
   filter(lifexlame>0)%>%
   filter(trimonly<1)%>%
-  select(farm, cowid,  #lifexlame,  #contains('life')
+  select(farm, cowid, dd, soleulcer, wld, footrot, #lifexlame,  #contains('life')
          lifexdd, lifexulc, lifexwld, lifexfr)%>%
   pivot_longer(cols = c( "lifexdd", "lifexulc", "lifexwld",
                         #"lifexthin",   "lifextoe",    
@@ -47,15 +47,32 @@ lesions<-lame4%>%
 
 
 lesion_summary<-lesions%>%
-  group_by(farm, lesion, lesion_ct)%>%
+  group_by(farm, cowid, lesion, lesion_ct)%>%
   summarise(ct_cows = n_distinct(cowid)#, 
             #ct_rows = sum(n())
             )%>%
   ungroup()%>%
-  group_by(farm, lesion)%>%
+  # need to add cowid to ensure only counts cows that had 2 lesions this year
+  group_by(farm, cowid, lesion)%>%
   mutate(lag_ct = lag(ct_cows))%>%
   ungroup()%>%
-  mutate(pct = ct_cows/lag_ct)
+  # to count cows that got a lesions this year
+  group_by(farm, lesion, lesion_ct, lag_ct) |>
+  mutate(sum_lag = sum(lag_ct)) |> 
+  ungroup() |> 
+  group_by(farm, lesion, lesion_ct) |> 
+  mutate(sum_cows = sum(ct_cows)
+  ) |> 
+  ungroup() |> 
+  select(farm, lesion, lesion_ct, sum_lag, sum_cows) |>
+  distinct() |> 
+  filter(!is.na(sum_lag)) |> 
+  group_by(farm, lesion, lesion_ct) |> 
+  # pct is percent that went onto that lesion
+  mutate(pct= sum_lag/sum_cows)
+
+
+  #mutate(pct = ct_cows/lag_ct)
   # mutate(Fail1to2 = `2`/`1`, 
   #        Fail2to3 = `3`/`2`, 
   #        Fail3to4 = `4`/`3`)
