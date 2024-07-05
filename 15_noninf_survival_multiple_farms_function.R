@@ -42,15 +42,51 @@ surval_inf <- survival_data(life_x_disease = lifexnoninf,
 
 # fit KM data 
 # not working yet
-km_fit <- function(data, time = censor_time, event = culled){
+km_fit <- function(data, time = censor_time, event = culled) {
   data_surv <- data |> 
-    mutate(surv_object = Surv(time = {{time}}, event = {{culled}}))
-  
-  fit <- survfit(surv_object ~ life_x_disease, 
-                 data = data)
+    mutate(test = 1)
 }
+
+# this name of surv_object is funky
+km_fit <- function(data, time = censor_time, event = culled) {
+  data_surv <- data |> 
+    mutate(surv_object = Surv(time = {{time}}, event = {{event}})
+    ) 
+  }
   
+# attempt to fix col names
+km_fit <- function(data, time = censor_time, event = culled) {
+  data_surv <- data |> 
+    mutate(surv_time = Surv(time = {{time}}),
+           surv_event = Surv({{event}})
+    ) 
+}
+
+## still doesn't work
+km_fit <- function(data, time = censor_time, event = culled) {
+  data_surv <- data 
+    fit <- survfit(Surv(time = {{ time }}, 
+                        event = {{ event }}) ~
+                    life_x_disease, data = data_surv)
+  }
+  
+# chatgpt
+library(survival)
+
+km_fit <- function(data, time, event) {
+  data_surv <- data 
+  fit <- survfit(Surv(time = !! time, event = !! event) ~ life_x_disease, data = data_surv)
+}
+
+# Example usage:
+# km_fit(data, time = data$censor_time, event = data$culled)
+
+
+censor_days = enquo(censor_time)
+censor_var = enquo(event)
 km_test <- km_fit(data = surval_inf)
+km_test <- km_fit(data = surval_inf, 
+                  time = censor_time, event = culled)
 
 fitKM <- survfit(Surv(censordat, culled) ~ lifexnoninf, data = survall_1y)
 km<- ggsurvplot(fitKM, 
