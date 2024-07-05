@@ -33,10 +33,10 @@ pacman::p_load(
 )
 
 # load data----
-lame4 <-import("datafiles/lame4.rds")
-lameleg <- import("datafiles/lameleg.rds")
-mall <- import("datafiles/mall.rds") 
-lamecull <- import("datafiles/lamecull.rds")
+lame4 <-import("datafiles/lame4.rds", trust = TRUE)
+lameleg <- import("datafiles/lameleg.rds", trust = TRUE)
+mall <- import("datafiles/mall.rds", trust = TRUE) 
+lamecull <- import("datafiles/lamecull.rds", trust = TRUE)
 
 # setup data section----
 # enter dates last 12 months of full data
