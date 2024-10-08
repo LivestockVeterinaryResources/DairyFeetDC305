@@ -4,7 +4,7 @@
 
 ## function to create data set for further use
 survival_data <- function(data = lamecull, censor_days = censordat,
-                          disease_date = ftdat, culled = culled,
+                          disease_date = ftdat, culled = culled, #should this be named "surv_event" to make it more intuative within the function?
                           control = lifexlame, life_x_disease) {
   # need to do this to use as.numeric to convert duration
   #censor_days <- ensym(censor_var)
