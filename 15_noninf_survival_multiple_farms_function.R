@@ -14,7 +14,7 @@ survival_data <- function(data = lamecull, censor_days = censordat,
            {{control}}, {{life_x_disease}}
            ) |>  
     ## this as.numeric creates NA's not sure why as it works without function
-  mutate (censor_time = as.numeric({{censor_days}}),
+  mutate (censor_time = as.numeric({{censor_days}}), #this appears to add unecesary complexity within the function, can this be done prior to the function?
          # create variables to condition on
          life_x_disease = case_when({{ control }} == 0 ~ 0,
                                     {{ life_x_disease }} == 1 ~ 1,
@@ -104,13 +104,22 @@ km_graph <- km_fit(data = surval_inf, event = culled)
 km_table <- km_fit_table(data = surval_inf, event = culled)
 
 # or combo approach
-km_graph2 <- survival_data(life_x_disease = lifexinf, disease_date = ftdat) |> 
+km_graph2 <- survival_data(life_x_disease = lifexnoninf, disease_date = ftdat) |> 
   km_fit(event = culled)
-
+km_graph2
 
 # todo: create list of all datasets for lesions 
-# then feed to graph function
+list_lesions<-lamecull%>%select(contains('lifex'))
 
+# then feed to graph function 
+#i=14
+for (i in seq_along(list_lesions)){
+  
+  km_graph2 <- survival_data(life_x_disease = list_lesions[[i]], disease_date = ftdat) |> 
+    km_fit(event = culled)
+  print(km_graph2)
+  
+}
 
 
 
